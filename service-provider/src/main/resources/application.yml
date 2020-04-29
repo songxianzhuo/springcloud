@@ -1,16 +1,30 @@
 server:
-  port: 8081
+  port: 8001
 
 spring:
   application:
     name: service-provider
 
 eureka:
-  instance:
-    prefer-ip-address: on
-    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
   client:
+    healthcheck:
+      enabled: true #开启健康检测，将eureka客户端的健康检测交给spring-boot-actuator模块的/health端点，以实现更为全面的健康状态维护，默认是false
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+      defaultZone: http://song:song12345@peer1:6101/eureka/ #这是默认zone，默认是ttp://localhost:8761/eureka/，多个注册地址用逗号分隔
+      song: http://song:song12345@peer1:6101/eureka/ #为自定义的Zone配置注册地址，多个注册地址用逗号分隔,设置多个url时，有注意事项，链接：http://blog.didispace.com/spring-cloud-eureka-register-detail/
+    registry-fetch-interval-seconds: 30 #eureka客户端缓存的服务清单刷新时间间隔，默认30s
+    availability-zones:
+      songxianzhuo: song,xian,zhuo #为region自定义zone，多个zone用逗号隔开
+    region: songxianzhuo # 自定义region，一个region下包含多个zone
+  instance:
+    lease-renewal-interval-in-seconds: 10 #定义服务RetryableEurekaHttpClient续约任务的调用间隔时间，默认30s
+    lease-expiration-duration-in-seconds: 15 #定义eureka server自接受上次心跳服务失效的时间，默认90s
+    prefer-ip-address: true #设置主机名使用IP地址
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port} # 自定义客户端唯一的实例id的命名规则，默认规则是${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id}:${server.port},注意，默认规则中最后两项优先前者，前者没有则使用后者
+#    hostname: ${spring.cloud.client.ip-address} #主机名使用ip地址代替，属性prefer-ip-address设置为true时，此属性不需要设置
+
+info:
+  app:
+    name: service-provider
+    version: v1.0.0
+    hostname: ${eureka.instance.hostname}

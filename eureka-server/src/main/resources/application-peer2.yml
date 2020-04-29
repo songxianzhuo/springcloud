@@ -1,0 +1,19 @@
+server:
+  port: 6102
+
+#设置eurekaServer的登录密码
+spring:
+  security:
+    user:
+      name: xian  # 用户名
+      password: xian12345 # 用户密码
+
+eureka:
+  instance:
+    hostname: peer2
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://song:song12345@peer1:6101/eureka/
+  server:
+    enable-self-preservation: false #eureka server是否开启自我保护机制，默认是true，本地调式时建议关闭
