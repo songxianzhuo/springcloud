@@ -1,0 +1,52 @@
+server:
+  port: 8060
+
+spring:
+  application:
+    name: zuul-server
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://song:song12345@172.17.0.2:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'hystrix.stream'
+
+zuul:
+  ignored-patterns: /**/admin/**   #忽略所有包含/admin/的路径
+  ignored-services: turbine-server #忽略某些服务，使用'*'可忽略所有微服务
+  prefix: /api # zuul访问前缀
+  strip-prefix: true #服务转发时是否忽略’/api‘前缀，默认是true
+  routes:
+    user-route: #该配置方式中，user-route只是给路由一个名称，可以任意起名。
+      service-id: provider-user
+      path: /user/** #service-id对应的路径
+      strip-prefix: true #只负责本级，服务转发时是否忽略’/user‘前缀，默认是true
+#      sensitive-headers: Cookie,Set-Cookie,Authorization #为单个服务设置敏感header，默认是Cookie,Set-Cookie
+    movie-route:
+      service-id: consumer-movie
+      path: /movie/**
+      strip-prefix: true
+    movie2-route:
+      service-id: consumer-movie2
+      path: /movie2/**
+      strip-prefix: true
+  sensitive-headers: Cookie,Set-Cookie,Authorization #为zuul代理全局设置敏感header，默认是Cookie,Set-Cookie
+#  ignored-headers: #忽略指定的Header，默认是空值，如果spring security在classpath下，则有默认值
+
+# 上传大文件得将超时时间设置长一些，否则会报超时异常
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 60000
+ribbon:
+  ConnectTimeout: 3000
+  ReadTimeout: 60000
+
+logging:
+  level:
+    com.netflix: debug

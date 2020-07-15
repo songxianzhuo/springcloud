@@ -1,0 +1,20 @@
+server:
+  port: 8763
+
+spring:
+  security:
+    user:
+      name: zhuo
+      password: zhuo12345
+
+eureka:
+  instance:
+    hostname: peer3
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://song:song12345@peer1:8761/eureka/,http://xian:xian12345@peer2:8762/eureka/
+  server:
+    enable-self-preservation: false
+    peer-node-read-timeout-ms: 500
+    eviction-interval-timer-in-ms: 4000

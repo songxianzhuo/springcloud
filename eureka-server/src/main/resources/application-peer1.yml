@@ -1,24 +1,26 @@
 server:
-  port: 6101
+  port: 8761
 
-#设置eurekaServer的登录密码
+#为eurekaServer的添加用户认证
 spring:
   security:
     user:
-      name: song  # 用户名
-      password: song12345 # 用户密码
+      name: song  # 用户名，默认是user
+      password: song12345 # 用户密码，如果name是默认的话，密码会在项目启动时在控制台打印
 
 eureka:
   instance:
-    hostname: peer1 #默认是操作系统主机名，若在同一个ip下搭建高可用模式环境时，建议自定义主机名，以区分各节点
-    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port} #自定义instanceid命名规则
-#    prefer-ip-address: true # 如果在同一个ip下搭建高可用模式环境时，建议为false
+    hostname: peer1 #默认是操作系统主机名，在高可用模式环境建议设置，以区分各节点
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port} #自定义instanceid命名规则，默认规则是${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id}:${server.port},注意，默认规则中最后两项优先前者，前者没有则使用后者
+    prefer-ip-address: false #高可用模式下因为要使用自定义的hostname，应设为false，默认是false；
   client:
-    register-with-eureka: false # 是否向注册中心注册自己，默认是true,eureka单节点模式设置为false，eureka高可用模式设置为true
-    fetch-registry: false #是否向注册中心检索服务，默认是true，设置同eureka.client.register-with-eureka
+    register-with-eureka: false # 是否向注册中心注册自己，默认是true,单节点模式设置为false，高可用模式设置为true
+    fetch-registry: false #是否从注册中心获取注册信息，默认是true，单节点模式设置为false，高可用模式设置为true
     service-url:
-      defaultZone: http://song:song12345@peer1:6101/eureka/ #已增加eureka server服务注册中心加入安全校验
+      defaultZone: http://song:song12345@peer1:8761/eureka/
+#      defaultZone: http://xian:xian12345@peer2:8762/eureka/,http://zhuo:zhuo12345@peer3:8763/eureka/ #参照格式http://name:password@EUREKA_HOST:EUREKA_PORT/eureka/可以将服务注册到需要认证的eureka server，将以搭建三个eureka server集群，然后两两注册，达到最大高可用
   server:
-    enable-self-preservation: false #eureka server是否开启自我保护机制，默认是true，本地调式时建议关闭
-#    peer-node-read-timeout-ms: 500 #高可用模式下，设置eureka server伙伴节点读取超时时间，单位毫秒
+    enable-self-preservation: false #Eureka server是否开启自我保护机制，默认是true，本地调式时建议关闭;自我保护模式是一种应对网络异常的安全保护措施，生成环境上使用自我保护模式，可以使Eureka集群更加的健壮、稳定
+    peer-node-read-timeout-ms: 500 #高可用模式下，设置eureka server伙伴节点读取超时时间，单位毫秒
+    eviction-interval-timer-in-ms: 4000 #服务端刷新服务列表间隔时间，单位是毫秒，默认是60*1000，本地测试将以将值设小点
 

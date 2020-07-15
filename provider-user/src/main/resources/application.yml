@@ -1,0 +1,65 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: provider-user
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  datasource:
+    platform: h2
+    schema: classpath:schema.sql
+    data: classpath:data.sql
+
+eureka:
+  client:
+    healthcheck:
+      enabled: true #开启健康检测，借助于spring-boot-starter-actuator，eureka客户端会将/health端点提供的应用健康信息发送至eureka server，以实现现更为全面的健康状态维护，是对心跳检查的补充，默认是false，传统的定时心跳检查，遇到网络抖动、连不上数据源等情况不能准确反映客户端健康状态
+    service-url:
+      defaultZone: http://song:song12345@172.17.0.2:8761/eureka/ #这是默认zone，默认是http://localhost:8761/eureka/，多个注册地址用逗号分隔,高可用模式配置一个注册地址就可以达到同步效果，关于注册过程，详见：http://blog.didispace.com/spring-cloud-eureka-register-detail/
+#      song: http://song:song12345@peer1:6101/eureka/ #为自定义的Zone配置注册地址
+    register-with-eureka: true # 是否向注册中心注册自己，默认是true,
+    fetch-registry: true #是否从注册中心获取注册信息，默认是true
+    registry-fetch-interval-seconds: 10 #客户端缓存的服务清单刷新时间间隔，默认30s
+#    availability-zones:
+#      songxianzhuo: song,xian,zhuo #为region自定义zone，多个zone用逗号隔开
+#    region: songxianzhuo # 自定义region，一个region下包含多个zone，默认是us-east-1
+  instance:
+    lease-renewal-interval-in-seconds: 30 #服务续约更新时间间隔，默认30s
+    lease-expiration-duration-in-seconds: 30 #服务续约到期时间，自eureka server自接受上次心跳服务失效的时间，默认90s
+    prefer-ip-address: true #表示将ip注册到eureka server，默认是false，表示将服务所在操作系统的hostname注册到eureka server
+    metadata-map: #自定义元数据，key/value可以随便写
+      my-metadata: 我自定义的元数据
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port} # 自定义客户端唯一的实例id的命名规则，默认规则是${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id}:${server.port},注意，默认规则中最后两项优先前者，前者没有则使用后者
+#    ip-address: 192.168.136.2 #给客户端配置静态ip
+#    hostname: ${spring.cloud.client.ip-address} #配置主机名，默认是操作系统主机名，主机名使用ip地址代替，一种是使用${spring.cloud.client.ip-address}直接配置，另一种是配置属性prefer-ip-address为true，表示优先使用ip-address表示hostname
+
+info:
+  app:
+    name: @project.artifactId@
+    encoding: @project.build.sourceEncoding@
+    java:
+      sourrce: @java.version@
+      target: @java.version@
+
+logging:
+  level:
+    root: info
+    org.hibernate: info
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org.hibernate.type.descriptor.sql.BasicExtractor: trace
+    org.springframework.cloud.netflix.eureka: debug
+
+#利用属性配置自定义Ribbon客户端（Springcloud Camden.SR4开始支持）
+consumer-movie:
+  ribbon:
+#    NFLoadBalancerClassName: #配置ILoadBalancer的实现类
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+#    NFLoadBalancerPingClassName: #配置IPing的实现类
+#    NIWSServerListClassName: #配置ServerList的实现类
+#    NIWSServerListFilterClassName: #配置ServerListFilter的实现类
+#    listOfServers: localhost:8090,localhost:8080 #微服务网络地址的服务列表，针对的是那些没有注册到eureka server上，但是想进行负载均衡的微服务
+

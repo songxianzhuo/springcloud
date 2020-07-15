@@ -1,0 +1,42 @@
+server:
+  port: 8010
+
+spring:
+  application:
+    name: consumer-movie
+
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+    service-url:
+      defaultZone: http://song:song12345@172.17.0.2:8761/eureka/
+    registry-fetch-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}
+
+
+info:
+  app:
+    name: @project.artifactId@
+    encoding: @project.build.sourceEncoding@
+    java:
+      sourrce: @java.version@
+      target: @java.version@
+
+logging:
+  level:
+    org.springframework.cloud.netflix.eureka: debug
+    com.example.consumermovie.service.IUserService: debug #Feign的Logger.Level只对debug模式做出响应
+
+feign:
+  hystrix:
+    enabled: true #feign开启hystrix断路器支持
+
+#暴露hystrix.stream端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'hystrix.stream'
